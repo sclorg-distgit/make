@@ -1,0 +1,65 @@
+diff -Nrup a/main.c b/main.c
+--- a/main.c	2016-07-25 21:32:11.042954302 -0400
++++ b/main.c	2016-07-25 21:42:08.002602357 -0400
+@@ -285,6 +285,11 @@ static int print_usage_flag = 0;
+ 
+ int warn_undefined_variables_flag;
+ 
++/* If nonzero, we should print a warning message
++   for each attemtp to call an undefined user function.  */
++
++int warn_undefined_functions_flag;
++
+ /* If nonzero, always build all targets, regardless of whether
+    they appear out of date or not.  */
+ 
+@@ -383,6 +388,8 @@ static const char *const usage[] =
+                               Consider FILE to be infinitely new.\n"),
+     N_("\
+   --warn-undefined-variables  Warn when an undefined variable is referenced.\n"),
++    N_("\
++  --warn-undefined-functions  Warn when an undefined user function is called.\n"),
+     NULL
+   };
+ 
+@@ -446,6 +453,9 @@ static const struct command_switch switc
+       "warn-undefined-variables" },
+     { CHAR_MAX+6, strlist, &eval_strings, 1, 0, 0, 0, 0, "eval" },
+     { CHAR_MAX+7, string, &sync_mutex, 1, 1, 0, 0, 0, "sync-mutex" },
++    { CHAR_MAX+8, flag, &warn_undefined_functions_flag, 1, 1, 0, 0, 0,
++      "warn-undefined-functions" },
++
+     { 0, 0, 0, 0, 0, 0, 0, 0, 0 }
+   };
+ 
+diff -Nrup a/makeint.h b/makeint.h
+--- a/makeint.h	2016-07-25 21:32:11.045954279 -0400
++++ b/makeint.h	2016-07-25 22:35:09.673083269 -0400
+@@ -598,7 +598,7 @@ extern int env_overrides, no_builtin_rul
+ extern int print_version_flag, print_directory_flag, check_symlink_flag;
+ extern int warn_undefined_variables_flag, trace_flag, posix_pedantic;
+ extern int not_parallel, second_expansion, clock_skew_detected;
+-extern int rebuilding_makefiles, one_shell, output_sync, verify_flag;
++extern int rebuilding_makefiles, one_shell, output_sync, verify_flag, warn_undefined_functions_flag;
+ 
+ /* can we run commands via 'sh -c xxx' or must we use batch files? */
+ extern int batch_mode_shell;
+diff -Nrup a/variable.h b/variable.h
+--- a/variable.h	2014-10-05 12:24:51.000000000 -0400
++++ b/variable.h	2016-07-25 22:37:49.204745239 -0400
+@@ -225,6 +225,15 @@ void undefine_variable_in_set (const cha
+                                        (int)(l), (n));                  \
+                               }while(0)
+ 
++/* Warn that NAME is an undefined function.  */
++
++#define warn_undefined_function(n,l) do{\
++                              if (warn_undefined_functions_flag) \
++                                error (reading_file, \
++                                       _("warning: undefined function `%.*s'"), \
++                                (int)(l), (n)); \
++                              }while(0)
++
+ char **target_environment (struct file *file);
+ 
+ struct pattern_var *create_pattern_var (const char *target,

@@ -1,0 +1,101 @@
+diff -Nrup a/debug.h b/debug.h
+--- a/debug.h	2014-10-05 12:24:51.000000000 -0400
++++ b/debug.h	2016-07-25 23:43:14.925943065 -0400
+@@ -20,6 +20,8 @@ this program.  If not, see <http://www.g
+ #define DB_JOBS         (0x004)
+ #define DB_IMPLICIT     (0x008)
+ #define DB_MAKEFILES    (0x100)
++#define DB_CALL       (0x01000)
++#define DB_EVAL       (0x02000)
+ 
+ #define DB_ALL          (0xfff)
+ 
+diff -Nrup a/function.c b/function.c
+--- a/function.c	2014-10-05 12:24:51.000000000 -0400
++++ b/function.c	2016-07-25 23:48:29.676888488 -0400
+@@ -26,6 +26,8 @@ this program.  If not, see <http://www.g
+ #include "amiga.h"
+ #endif
+ 
++static int depth = 0;
++
+ 
+ struct function_table_entry
+   {
+@@ -1387,7 +1389,12 @@ func_eval (char *o, char **argv, const c
+ 
+   install_variable_buffer (&buf, &len);
+ 
++  depth += 1;
++  DBS( DB_EVAL, ("### eval -->\n"));
++  DB( DB_EVAL, ("%s\n", argv[0]));
+   eval_buffer (argv[0], NULL);
++  DBS( DB_EVAL, ("### eval <--\n"));
++  depth -= 1;
+ 
+   restore_variable_buffer (buf, len);
+ 
+@@ -2525,6 +2532,7 @@ func_call (char *o, char **argv, const c
+   if (v == 0 || *v->value == '\0')
+     return o;
+ 
++  depth += 1;
+   body = alloca (flen + 4);
+   body[0] = '$';
+   body[1] = '(';
+@@ -2532,6 +2540,8 @@ func_call (char *o, char **argv, const c
+   body[flen+2] = ')';
+   body[flen+3] = '\0';
+ 
++  DBS(DB_CALL, ("### call %s -->\n", body));
++
+   /* Set up arguments $(1) .. $(N).  $(0) is the function name.  */
+ 
+   push_new_variable_scope ();
+@@ -2541,6 +2551,7 @@ func_call (char *o, char **argv, const c
+       char num[11];
+ 
+       sprintf (num, "%d", i);
++      DBS(DB_CALL, ("### arg %i for call %s is '%s'\n", i, body, *argv));
+       define_variable (num, strlen (num), *argv, o_automatic, 0);
+     }
+ 
+@@ -2554,6 +2565,7 @@ func_call (char *o, char **argv, const c
+       char num[11];
+ 
+       sprintf (num, "%d", i);
++      DBS(DB_CALL, ("### arg %i for call %s is implicit\n", i, body));
+       define_variable (num, strlen (num), "", o_automatic, 0);
+     }
+ 
+@@ -2564,7 +2576,14 @@ func_call (char *o, char **argv, const c
+ 
+   saved_args = max_args;
+   max_args = i;
++
+   o = variable_expand_string (o, body, flen+3);
++  DBS(DB_CALL, ("### call to %s expended into\n", body));
++  DB(DB_CALL, ("%s\n", o));
++  DBS(DB_CALL, ("### call %s <--\n", body));
++
++  depth -= 1;
++
+   max_args = saved_args;
+ 
+   v->exp_count = 0;
+diff -Nrup a/main.c b/main.c
+--- a/main.c	2016-07-25 22:48:42.626293430 -0400
++++ b/main.c	2016-07-25 23:41:00.950807213 -0400
+@@ -727,6 +727,12 @@ decode_debug_flags (void)
+               case 'b':
+                 db_level |= DB_BASIC;
+                 break;
++              case 'c':
++                db_level |= DB_CALL;
++                break;
++              case 'e':
++                db_level |= DB_EVAL;
++                break;
+               case 'i':
+                 db_level |= DB_BASIC | DB_IMPLICIT;
+                 break;
