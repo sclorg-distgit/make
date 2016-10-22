@@ -4,7 +4,7 @@ Summary: A GNU tool which simplifies the build process for users
 Name: %{?scl_prefix}make
 Epoch: 1
 Version: 4.1
-Release: 1%{?dist}
+Release: 2%{?dist}
 License: GPLv2+
 Group: Development/Tools
 URL: http://www.gnu.org/software/make/
@@ -104,7 +104,11 @@ fi
 %{_includedir}/gnumake.h
 
 %changelog
-* Wed Jul 27 2016 Patsy Franklin <pfrankli@redhat.com> - 4.1-1
+* Wed Aug 03 2016 Patsy Franklin <pfrankli@redhat.com> - 4.1-2
+- Update change log info with correct date and info. (BZ #1363870)
+
+* Wed Aug 03 2016 Patsy Franklin <pfrankli@redhat.com> - 4.1-1
+- Initial version for DTS.
 
 * Thu Jul 07 2016 Patsy Franklin <pfrankli@redhat.com> - 1:3.82-23
 - In very obscure situations we may incorrectly write the free token
