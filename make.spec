@@ -4,7 +4,7 @@ Summary: A GNU tool which simplifies the build process for users
 Name: %{?scl_prefix}make
 Epoch: 1
 Version: 4.1
-Release: 2%{?dist}
+Release: 3%{?dist}
 License: GPLv2+
 Group: Development/Tools
 URL: http://www.gnu.org/software/make/
@@ -25,6 +25,9 @@ Patch7: make-4.1-warn_undefined_function.patch
 
 # http://lists.gnu.org/archive/html/bug-make/2011-06/msg00032.html
 Patch8: make-4.1-trace.patch
+
+# Test fopen-fail would timeout if before producing the expected error.
+Patch9: make-4.1-fopen-fail-timeout.patch
 
 # Buildroot: %(mktemp -ud %{_tmppath}/make-%{version}-%{release}-XXXXXX)
 BuildRoot: %{_tmppath}/make-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -53,6 +56,7 @@ echo "STARTING PREP of make"
 %patch6 -p1
 %patch7 -p1
 %patch8 -p1
+%patch9 -p1
 
 rm -f tests/scripts/features/parallelism.orig
 
@@ -73,10 +77,6 @@ rm -f ${RPM_BUILD_ROOT}/%{_infodir}/dir
 
 %check
 echo ============TESTING===============
-# For DTS-6 alpha disable this test to allow initial builds to complete.
-# The test passes with a mock build or using make directly.  It only fails
-# using the brew build.
- rm -f tests/scripts/misc/fopen-fail
 /usr/bin/env LANG=C make check
 echo ============END TESTING===========
 
@@ -104,6 +104,10 @@ fi
 %{_includedir}/gnumake.h
 
 %changelog
+* Tue Sep 13 2016 Patsy Franklin <pfrankli@redhat.com> - 4.1-3
+- Increase time before timeout for test fopen-fail to prevent
+  failing before issuing expected error.
+
 * Wed Aug 03 2016 Patsy Franklin <pfrankli@redhat.com> - 4.1-2
 - Fix the change log to include the BZ.
 
