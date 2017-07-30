@@ -1,0 +1,19 @@
+diff -Nrup a/job.c b/job.c
+--- a/job.c	2016-05-21 16:22:32.000000000 -0400
++++ b/job.c	2017-06-11 09:44:05.330432768 -0400
+@@ -3144,13 +3144,14 @@ construct_command_argv_internal (char *l
+ #endif
+             if (PRESERVE_BSNL)
+               {
+-                *(ap++) = '\\';
++                *(ap++) = '\'';
+                 /* Only non-batch execution needs another backslash,
+                    because it will be passed through a recursive
+                    invocation of this function.  */
+                 if (!batch_mode_shell)
+                   *(ap++) = '\\';
+                 *(ap++) = '\n';
++                *(ap++) = '\'';
+               }
+             ++p;
+             continue;
