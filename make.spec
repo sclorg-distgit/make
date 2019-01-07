@@ -4,7 +4,7 @@ Summary: A GNU tool which simplifies the build process for users
 Name: %{?scl_prefix}make
 Epoch: 1
 Version: 4.2.1
-Release: 4%{?dist}
+Release: 4.bs1%{?dist}
 License: GPLv2+
 Group: Development/Tools
 URL: http://www.gnu.org/software/make/
